@@ -205,3 +205,24 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ChatBI Web specific
+chatbi-web/frontend/node_modules/
+chatbi-web/frontend/dist/
+chatbi-web/frontend/.vite/
+chatbi-web/frontend/.cache/
+chatbi-web/backend/__pycache__/
+chatbi-web/backend/*.pyc
+chatbi-web/backend/.env
+chatbi-web/backend/instance/
+
+# Docker volumes
+mysql-data/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
