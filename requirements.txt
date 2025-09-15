@@ -1,0 +1,6 @@
+langchain
+langchain-core
+langchain-ollama
+pydantic
+mysql-connector-python
+pandas
