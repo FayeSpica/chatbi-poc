@@ -19,6 +19,36 @@ services:
       retries: 20
       timeout: 3s
 
+  chatbi-server:
+    build: ./chatbi-server
+    container_name: chatbi-server
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=pass
+      - MYSQL_DATABASE=shop
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=qwen3:8b
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./chatbi-server:/app
+
+  chatbi-ui:
+    build: ./chatbi-ui
+    container_name: chatbi-ui
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - chatbi-server
+    volumes:
+      - ./chatbi-ui:/app
+
 volumes:
   mysql-data:
-  ollama:
