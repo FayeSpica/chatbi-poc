@@ -58,7 +58,7 @@ function QueryInput({ onSendMessage, isLoading, settings, onSettingsChange, onCl
                 onChange={(e) => handleSettingChange('model', e.target.value)}
                 className="input-field"
               >
-                <option value="llama3.1:8b">llama3.1:8b</option>
+                <option value="qwen3:8b">qwen3:8b</option>
                 <option value="qwen3:8b">qwen3:8b</option>
                 <option value="gpt-oss:20b">gpt-oss:20b</option>
               </select>

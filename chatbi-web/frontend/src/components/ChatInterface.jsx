@@ -11,7 +11,7 @@ function ChatInterface() {
   const [settings, setSettings] = useState({
     useSemantic: true,
     dbName: 'shop',
-    model: 'llama3.1:8b'
+    model: 'qwen3:8b'
   })
   const messagesEndRef = useRef(null)
 

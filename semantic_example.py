@@ -48,7 +48,7 @@ def demo_semantic_module():
             semantic, sql = nl_to_mysql(
                 question=question,
                 db_name="shop",
-                model="llama3.1:8b"
+                model="qwen3:8b"
             )
             print(f"意图: {semantic.intent}")
             print(f"SQL: {sql}")
@@ -63,7 +63,7 @@ def demo_semantic_module():
             semantic, sql = nl_to_mysql(
                 question=question,
                 db_name="unknown_db",
-                model="llama3.1:8b"
+                model="qwen3:8b"
             )
             print(f"意图: {semantic.intent}")
             print(f"SQL: {sql}")
