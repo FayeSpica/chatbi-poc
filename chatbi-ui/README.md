@@ -139,7 +139,7 @@ const result = await queryAPI({
   question: "查询所有用户信息",
   db_name: "shop",
   use_semantic: true,
-  model: "qwen3:8b"
+  model: "qwen2.5:7b"
 });
 ```
 

@@ -86,7 +86,7 @@ docker-compose up chatbi-server
 | `MYSQL_PASSWORD` | - | MySQL密码 |
 | `MYSQL_DATABASE` | - | MySQL数据库名 |
 | `OLLAMA_BASE_URL` | http://localhost:11434 | Ollama服务地址 |
-| `OLLAMA_MODEL` | qwen3:8b | 使用的LLM模型 |
+| `OLLAMA_MODEL` | qwen2.5:7b | 使用的LLM模型 |
 | `DB_NAME` | shop | 语义模式数据库名 |
 
 ## API接口文档
@@ -110,7 +110,7 @@ Content-Type: application/json
   "question": "查询所有用户信息",
   "db_name": "shop",
   "use_semantic": true,
-  "model": "qwen3:8b"
+  "model": "qwen2.5:7b"
 }
 ```
 
@@ -175,7 +175,7 @@ MYSQL_HOST=127.0.0.1 MYSQL_PORT=3307 MYSQL_USER=root MYSQL_PASSWORD=pass MYSQL_D
 1. **Ollama连接失败**
    - 确认Ollama服务正在运行：`ollama serve`
    - 检查OLLAMA_BASE_URL配置
-   - 确认模型已下载：`ollama pull qwen3:8b`
+   - 确认模型已下载：`ollama pull qwen2.5:7b`
 
 2. **MySQL连接失败**
    - 检查数据库服务是否运行

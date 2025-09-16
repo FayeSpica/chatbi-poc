@@ -58,7 +58,7 @@ def run():
         except Exception as e:
             print(f"[WARN] 无法获取数据库结构，将在无结构提示下生成: {e}")
 
-    model = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
+    model = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
     base_url = os.environ.get("OLLAMA_BASE_URL")  # e.g. http://localhost:11434
     db_name = os.environ.get("DB_NAME", "shop")  # 数据库名称，用于语义模式匹配
 

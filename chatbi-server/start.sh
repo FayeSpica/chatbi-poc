@@ -21,7 +21,7 @@ if ! curl -s http://localhost:11434/api/tags > /dev/null; then
     echo "⚠️  Ollama 服务未运行，请先启动 Ollama："
     echo "   ollama serve"
     echo "   然后下载模型："
-    echo "   ollama pull qwen3:8b"
+    echo "   ollama pull qwen2.5:7b"
     echo ""
     echo "继续启动服务器（可能会遇到连接错误）..."
 fi
