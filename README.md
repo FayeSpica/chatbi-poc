@@ -45,8 +45,8 @@ docker-compose up -d
 ### 3. 确保Ollama运行
 ```bash
 ollama serve
-# 确保有llama3.1:8b模型
-ollama pull llama3.1:8b
+# 确保有qwen3:8b模型
+ollama pull qwen3:8b
 ```
 
 ### 4. 运行系统
@@ -77,7 +77,7 @@ MYSQL_HOST=127.0.0.1 MYSQL_PORT=3307 MYSQL_USER=root MYSQL_PASSWORD=pass MYSQL_D
 | `MYSQL_PASSWORD` | - | MySQL密码 |
 | `MYSQL_DATABASE` | - | MySQL数据库名 |
 | `OLLAMA_BASE_URL` | http://localhost:11434 | Ollama服务地址 |
-| `OLLAMA_MODEL` | llama3.1:8b | 使用的模型 |
+| `OLLAMA_MODEL` | qwen3:8b | 使用的模型 |
 | `DB_NAME` | shop | 语义模式数据库名 |
 
 ## 语义模式定义
@@ -190,7 +190,7 @@ QUESTION="找出最活跃的用户，按订单总金额排序，显示用户名�
 ### 常见问题
 1. **Ollama连接失败**: 确保Ollama服务正在运行
 2. **MySQL连接失败**: 检查数据库配置和网络连接
-3. **模型不存在**: 使用 `ollama pull llama3.1:8b` 下载模型
+3. **模型不存在**: 使用 `ollama pull qwen3:8b` 下载模型
 4. **JSON解析错误**: 检查LLM输出格式，系统会自动清理无效条件
 
 ### 调试模式

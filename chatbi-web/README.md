@@ -86,7 +86,7 @@ npm run dev
 ```bash
 # Ollama配置
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
+OLLAMA_MODEL=qwen3:8b
 
 # MySQL配置（可选）
 MYSQL_HOST=127.0.0.1
@@ -134,7 +134,7 @@ Content-Type: application/json
   "question": "查询所有用户信息",
   "db_name": "shop",
   "use_semantic": true,
-  "model": "llama3.1:8b"
+  "model": "qwen3:8b"
 }
 ```
 

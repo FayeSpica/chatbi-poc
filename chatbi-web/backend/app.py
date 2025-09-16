@@ -42,7 +42,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., description="自然语言问题")
     db_name: str = Field(default="shop", description="数据库名称")
     use_semantic: bool = Field(default=True, description="是否使用语义模式")
-    model: str = Field(default="llama3.1:8b", description="使用的模型")
+    model: str = Field(default="qwen3:8b", description="使用的模型")
 
 class QueryResponse(BaseModel):
     success: bool
