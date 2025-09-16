@@ -52,4 +52,9 @@ export const processQuery = async (queryData) => {
   return response.data
 }
 
+export const executeSQL = async (sqlData) => {
+  const response = await api.post('/execute-sql', sqlData)
+  return response.data
+}
+
 export default api

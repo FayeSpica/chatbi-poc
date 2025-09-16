@@ -6,7 +6,7 @@ ChatBI Web Backend - FastAPI应用
 import os
 import sys
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Depends
@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
+import mysql.connector
+import traceback
 
 # 添加父目录到路径，以便导入语义模块
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -77,6 +79,20 @@ class HealthResponse(BaseModel):
     ollama_available: bool
     semantic_schemas: int
 
+class ExecuteSQLRequest(BaseModel):
+    sql: str = Field(..., description="要执行的 MySQL SQL 语句")
+    db_name: str = Field(default="shop", description="数据库名称")
+
+class ExecuteSQLResponse(BaseModel):
+    success: bool
+    sql: str
+    data: Optional[List[Dict[str, Any]]] = None
+    columns: Optional[List[str]] = None
+    row_count: int
+    execution_time: float
+    timestamp: str
+    error: Optional[str] = None
+
 # 全局配置
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 MYSQL_CONFIG = {
@@ -86,6 +102,73 @@ MYSQL_CONFIG = {
     "password": os.getenv("MYSQL_PASSWORD", "pass"),
     "database": os.getenv("MYSQL_DATABASE", "shop")
 }
+
+def is_safe_sql(sql: str) -> bool:
+    """检查 SQL 是否安全（只允许 SELECT 语句）"""
+    sql_clean = sql.strip().upper()
+    
+    # 只允许 SELECT 语句
+    if not sql_clean.startswith('SELECT'):
+        return False
+    
+    # 禁止的关键词
+    forbidden_keywords = [
+        'DROP', 'DELETE', 'INSERT', 'UPDATE', 'CREATE', 'ALTER', 
+        'TRUNCATE', 'GRANT', 'REVOKE', 'EXEC', 'EXECUTE',
+        'LOAD_FILE', 'INTO OUTFILE', 'INTO DUMPFILE'
+    ]
+    
+    for keyword in forbidden_keywords:
+        if keyword in sql_clean:
+            return False
+    
+    return True
+
+def execute_mysql_query(sql: str, db_name: str = "shop") -> Tuple[List[Dict[str, Any]], List[str], int]:
+    """执行 MySQL 查询并返回结果"""
+    if not is_safe_sql(sql):
+        raise ValueError("不安全的 SQL 语句：只允许 SELECT 查询")
+    
+    # 使用指定的数据库名称
+    config = MYSQL_CONFIG.copy()
+    config["database"] = db_name
+    
+    conn = None
+    try:
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        
+        # 获取列名
+        columns = [desc[0] for desc in cursor.description] if cursor.description else []
+        
+        # 转换结果为标准格式
+        data = []
+        for row in results:
+            row_dict = {}
+            for key, value in row.items():
+                # 处理特殊类型
+                if hasattr(value, 'isoformat'):  # datetime 对象
+                    row_dict[key] = value.isoformat()
+                elif isinstance(value, bytes):  # bytes 对象
+                    row_dict[key] = value.decode('utf-8')
+                else:
+                    row_dict[key] = value
+            data.append(row_dict)
+        
+        return data, columns, len(data)
+        
+    except mysql.connector.Error as e:
+        logger.error(f"MySQL 执行错误: {e}")
+        raise HTTPException(status_code=500, detail=f"数据库执行错误: {str(e)}")
+    except Exception as e:
+        logger.error(f"SQL 执行异常: {e}")
+        raise HTTPException(status_code=500, detail=f"执行错误: {str(e)}")
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
 
 @app.get("/", response_model=HealthResponse)
 async def health_check():
@@ -224,6 +307,80 @@ async def process_query(request: QueryRequest):
             execution_time=execution_time,
             timestamp=datetime.now().isoformat(),
             error=str(e)
+        )
+
+@app.post("/execute-sql", response_model=ExecuteSQLResponse)
+async def execute_sql(request: ExecuteSQLRequest):
+    """执行生成的 MySQL SQL 查询"""
+    start_time = datetime.now()
+    
+    logger.info(f"开始执行 SQL 查询 - 数据库: {request.db_name}")
+    logger.debug(f"要执行的 SQL: {request.sql}")
+    
+    try:
+        # 执行 SQL 查询
+        data, columns, row_count = execute_mysql_query(request.sql, request.db_name)
+        
+        execution_time = (datetime.now() - start_time).total_seconds()
+        
+        logger.info(f"SQL 执行成功 - 返回 {row_count} 行数据, 执行时间: {execution_time:.3f}秒")
+        
+        return ExecuteSQLResponse(
+            success=True,
+            sql=request.sql,
+            data=data,
+            columns=columns,
+            row_count=row_count,
+            execution_time=execution_time,
+            timestamp=datetime.now().isoformat()
+        )
+        
+    except ValueError as e:
+        # 安全检查失败
+        execution_time = (datetime.now() - start_time).total_seconds()
+        logger.warning(f"SQL 安全检查失败: {str(e)}")
+        
+        return ExecuteSQLResponse(
+            success=False,
+            sql=request.sql,
+            data=None,
+            columns=None,
+            row_count=0,
+            execution_time=execution_time,
+            timestamp=datetime.now().isoformat(),
+            error=str(e)
+        )
+        
+    except HTTPException as e:
+        # 数据库执行错误
+        execution_time = (datetime.now() - start_time).total_seconds()
+        logger.error(f"SQL 执行失败: {e.detail}")
+        
+        return ExecuteSQLResponse(
+            success=False,
+            sql=request.sql,
+            data=None,
+            columns=None,
+            row_count=0,
+            execution_time=execution_time,
+            timestamp=datetime.now().isoformat(),
+            error=e.detail
+        )
+        
+    except Exception as e:
+        # 其他未知错误
+        execution_time = (datetime.now() - start_time).total_seconds()
+        logger.error(f"SQL 执行发生未知错误: {str(e)}", exc_info=True)
+        
+        return ExecuteSQLResponse(
+            success=False,
+            sql=request.sql,
+            data=None,
+            columns=None,
+            row_count=0,
+            execution_time=execution_time,
+            timestamp=datetime.now().isoformat(),
+            error=f"执行错误: {str(e)}"
         )
 
 @app.get("/examples")

@@ -216,6 +216,41 @@ chatbi-web/backend/*.pyc
 chatbi-web/backend/.env
 chatbi-web/backend/instance/
 
+# Node.js dependencies and build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+.vite/
+.cache/
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Frontend specific (ChatBI UI)
+chatbi-ui/node_modules/
+chatbi-ui/dist/
+chatbi-ui/.vite/
+chatbi-ui/.cache/
+chatbi-ui/.env.local
+chatbi-ui/.env.development.local
+chatbi-ui/.env.test.local
+chatbi-ui/.env.production.local
+
+# Package manager lock files (optional - some prefer to keep them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
 # Docker volumes
 mysql-data/
 
