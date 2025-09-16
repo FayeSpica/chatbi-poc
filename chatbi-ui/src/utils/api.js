@@ -4,7 +4,7 @@ const API_BASE_URL = '/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30秒超时
+  timeout: 300000, // 300秒超时
 })
 
 // 请求拦截器
