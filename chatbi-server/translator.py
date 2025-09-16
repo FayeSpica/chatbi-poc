@@ -163,7 +163,7 @@ def _get_enhanced_schema_hint(
         return f"语义模式定义:\n{semantic_hint}\n\n物理表结构:\n{physical_hint}"
 
 
-def _make_llm(model: str = "qwen3:8b", base_url: Optional[str] = None) -> ChatOllama:
+def _make_llm(model: str = "qwen2.5:7b", base_url: Optional[str] = None) -> ChatOllama:
     return ChatOllama(
         model=model, 
         base_url=base_url or "http://localhost:11434",
@@ -175,7 +175,7 @@ def _make_llm(model: str = "qwen3:8b", base_url: Optional[str] = None) -> ChatOl
 def nl_to_semantic(
     question: str,
     schema: Optional[Dict[str, List[Tuple[str, str]]]] = None,
-    model: str = "qwen3:8b",
+    model: str = "qwen2.5:7b",
     base_url: Optional[str] = None,
     db_name: str = "shop",
 ) -> SemanticSQL:
@@ -271,7 +271,7 @@ def nl_to_semantic(
 def nl_to_mysql(
     question: str,
     schema: Optional[Dict[str, List[Tuple[str, str]]]] = None,
-    model: str = "qwen3:8b",
+    model: str = "qwen2.5:7b",
     base_url: Optional[str] = None,
     db_name: str = "shop",
 ) -> Tuple[SemanticSQL, str]:

@@ -31,7 +31,7 @@ services:
       - MYSQL_PASSWORD=pass
       - MYSQL_DATABASE=shop
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - OLLAMA_MODEL=qwen3:8b
+      - OLLAMA_MODEL=qwen2.5:7b
     depends_on:
       mysql:
         condition: service_healthy

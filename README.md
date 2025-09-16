@@ -117,7 +117,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ollama serve
 
 # 下载模型
-ollama pull qwen3:8b
+ollama pull qwen2.5:7b
 ```
 
 #### 2. 配置MySQL（可选）
@@ -142,7 +142,7 @@ docker-compose up mysql -d
 | `MYSQL_PASSWORD` | - | MySQL密码 |
 | `MYSQL_DATABASE` | - | MySQL数据库名 |
 | `OLLAMA_BASE_URL` | http://localhost:11434 | Ollama服务地址 |
-| `OLLAMA_MODEL` | qwen3:8b | 使用的LLM模型 |
+| `OLLAMA_MODEL` | qwen2.5:7b | 使用的LLM模型 |
 | `DB_NAME` | shop | 语义模式数据库名 |
 
 #### 前端配置 (chatbi-ui)
