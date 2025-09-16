@@ -5,6 +5,7 @@ ChatBI Web Backend - FastAPI应用
 
 import os
 import sys
+import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -21,6 +22,17 @@ if parent_dir not in sys.path:
 
 from translator import nl_to_mysql
 from semantic_schema import semantic_manager
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('chatbi-server.log', encoding='utf-8')
+    ]
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ChatBI API",
@@ -78,6 +90,7 @@ MYSQL_CONFIG = {
 @app.get("/", response_model=HealthResponse)
 async def health_check():
     """健康检查接口"""
+    logger.info("执行健康检查")
     try:
         # 检查Ollama连接
         import requests
@@ -85,16 +98,22 @@ async def health_check():
         try:
             response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
             ollama_available = response.status_code == 200
-        except:
+            logger.debug(f"Ollama连接检查 - 可用: {ollama_available}, 状态码: {response.status_code}")
+        except Exception as e:
+            logger.warning(f"Ollama连接检查失败: {e}")
             pass
+        
+        schemas_count = len(semantic_manager.schemas)
+        logger.info(f"健康检查完成 - Ollama可用: {ollama_available}, 语义模式数量: {schemas_count}")
         
         return HealthResponse(
             status="healthy",
             timestamp=datetime.now().isoformat(),
             ollama_available=ollama_available,
-            semantic_schemas=len(semantic_manager.schemas)
+            semantic_schemas=schemas_count
         )
     except Exception as e:
+        logger.error(f"健康检查失败: {e}", exc_info=True)
         return HealthResponse(
             status="unhealthy",
             timestamp=datetime.now().isoformat(),
@@ -105,6 +124,7 @@ async def health_check():
 @app.get("/schemas", response_model=SchemaInfoResponse)
 async def get_schemas():
     """获取可用的语义模式列表"""
+    logger.info("获取语义模式列表请求")
     try:
         schemas = []
         for name, schema in semantic_manager.schemas.items():
@@ -122,14 +142,20 @@ async def get_schemas():
                 ]
             })
         
+        logger.info(f"成功返回 {len(schemas)} 个语义模式")
         return SchemaInfoResponse(success=True, schemas=schemas)
     except Exception as e:
+        logger.error(f"获取语义模式列表失败: {e}", exc_info=True)
         return SchemaInfoResponse(success=False, schemas=[], error=str(e))
 
 @app.post("/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest):
     """处理自然语言查询"""
     start_time = datetime.now()
+    
+    # 记录请求开始信息
+    logger.info(f"开始处理查询请求 - 问题: '{request.question}', 数据库: {request.db_name}, "
+                f"使用语义模式: {request.use_semantic}, 模型: {request.model}")
     
     try:
         # 准备参数
@@ -138,11 +164,14 @@ async def process_query(request: QueryRequest):
             try:
                 # 这里可以添加MySQL模式自省逻辑
                 # 暂时跳过，直接使用语义模式
+                logger.debug(f"MySQL配置检测到，主机: {MYSQL_CONFIG['host']}:{MYSQL_CONFIG['port']}")
                 pass
             except Exception as e:
-                print(f"MySQL连接失败: {e}")
+                logger.error(f"MySQL连接失败: {e}")
         
         # 调用翻译器
+        logger.info(f"开始自然语言到SQL转换 - 使用语义模式: {request.use_semantic}")
+        
         if request.use_semantic:
             semantic, sql = nl_to_mysql(
                 question=request.question,
@@ -153,6 +182,7 @@ async def process_query(request: QueryRequest):
             )
         else:
             # 不使用语义模式
+            logger.info("使用非语义模式进行转换")
             semantic, sql = nl_to_mysql(
                 question=request.question,
                 schema=schema,
@@ -162,6 +192,11 @@ async def process_query(request: QueryRequest):
             )
         
         execution_time = (datetime.now() - start_time).total_seconds()
+        
+        # 记录成功处理信息
+        logger.info(f"查询处理成功 - 意图: {semantic.intent}, SQL长度: {len(sql)}字符, "
+                    f"执行时间: {execution_time:.3f}秒")
+        logger.debug(f"生成的SQL: {sql}")
         
         return QueryResponse(
             success=True,
@@ -175,6 +210,11 @@ async def process_query(request: QueryRequest):
         
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
+        
+        # 记录错误信息
+        logger.error(f"查询处理失败 - 问题: '{request.question}', 错误: {str(e)}, "
+                     f"执行时间: {execution_time:.3f}秒", exc_info=True)
+        
         return QueryResponse(
             success=False,
             question=request.question,
@@ -219,6 +259,9 @@ async def get_examples():
     }
 
 if __name__ == "__main__":
+    logger.info("启动ChatBI服务器")
+    logger.info(f"Ollama基础URL: {OLLAMA_BASE_URL}")
+    logger.info(f"MySQL配置: {MYSQL_CONFIG['host']}:{MYSQL_CONFIG['port']}")
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
