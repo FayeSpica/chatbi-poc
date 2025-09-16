@@ -168,7 +168,7 @@ def _make_llm(model: str = "qwen3:8b", base_url: Optional[str] = None) -> ChatOl
         model=model, 
         base_url=base_url or "http://localhost:11434",
         temperature=0.1,
-        timeout=30.0
+        timeout=300.0
     )
 
 
