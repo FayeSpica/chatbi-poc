@@ -105,21 +105,30 @@ MYSQL_CONFIG = {
 
 def is_safe_sql(sql: str) -> bool:
     """检查 SQL 是否安全（只允许 SELECT 语句）"""
+    import re
+    
     sql_clean = sql.strip().upper()
     
     # 只允许 SELECT 语句
     if not sql_clean.startswith('SELECT'):
         return False
     
-    # 禁止的关键词
+    # 移除字符串字面量，避免误匹配字符串内容
+    # 匹配单引号和双引号字符串
+    sql_without_strings = re.sub(r'(["\'])(?:(?=(\\?))\2.)*?\1', '', sql_clean)
+    
+    # 禁止的关键词（使用词边界匹配，避免误匹配字段名）
     forbidden_keywords = [
         'DROP', 'DELETE', 'INSERT', 'UPDATE', 'CREATE', 'ALTER', 
         'TRUNCATE', 'GRANT', 'REVOKE', 'EXEC', 'EXECUTE',
         'LOAD_FILE', 'INTO OUTFILE', 'INTO DUMPFILE'
     ]
     
+    # 使用正则表达式进行词边界匹配
     for keyword in forbidden_keywords:
-        if keyword in sql_clean:
+        # \b 表示词边界，确保只匹配完整的关键词
+        pattern = r'\b' + re.escape(keyword) + r'\b'
+        if re.search(pattern, sql_without_strings):
             return False
     
     return True
