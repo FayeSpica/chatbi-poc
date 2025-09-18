@@ -6,26 +6,40 @@ CREATE TABLE IF NOT EXISTS users (
   last_name VARCHAR(100),
   phone VARCHAR(20),
   address TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX (email),
-  INDEX (username)
+  INDEX (username),
+  INDEX (is_active)
 );
 
 CREATE TABLE IF NOT EXISTS products (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
+  description TEXT,
   category VARCHAR(128),
   price DECIMAL(10,2) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  stock_quantity INT NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (category),
+  INDEX (is_active),
+  INDEX (stock_quantity)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id BIGINT NOT NULL,
+  order_number VARCHAR(50) NOT NULL UNIQUE,
   total_amount DECIMAL(12,2) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX (user_id),
+  INDEX (order_number),
+  INDEX (status),
+  INDEX (created_at),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
