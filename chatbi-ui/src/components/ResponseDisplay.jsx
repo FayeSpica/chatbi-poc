@@ -4,6 +4,7 @@ import JsonView from '@uiw/react-json-view'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { executeSQL } from '../utils/api'
+import ChartSelector from './charts/ChartSelector'
 
 function ResponseDisplay({ response }) {
   const [copiedStates, setCopiedStates] = useState({})
@@ -215,7 +216,7 @@ function ResponseDisplay({ response }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-green-600">
-                <Table className="w-4 h-4" />
+                <Database className="w-4 h-4" />
                 <span className="font-medium">
                   {autoExecuteResult ? '自动执行结果' : '查询结果'}
                 </span>
@@ -244,47 +245,11 @@ function ResponseDisplay({ response }) {
             </div>
             
             {currentResult.data && currentResult.data.length > 0 ? (
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="overflow-x-auto max-h-96">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        {currentResult.columns.map((column, index) => (
-                          <th
-                            key={index}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                          >
-                            {column}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {currentResult.data.map((row, rowIndex) => (
-                        <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          {currentResult.columns.map((column, colIndex) => (
-                            <td
-                              key={colIndex}
-                              className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap"
-                            >
-                              {row[column] !== null && row[column] !== undefined 
-                                ? String(row[column]) 
-                                : <span className="text-gray-400 italic">null</span>
-                              }
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                
-                {currentResult.row_count > currentResult.data.length && (
-                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-600 text-center">
-                    显示前 {currentResult.data.length} 行，共 {currentResult.row_count} 行数据
-                  </div>
-                )}
-              </div>
+              <ChartSelector
+                data={currentResult.data}
+                columns={currentResult.columns}
+                title={`查询结果 (${currentResult.row_count} 行数据)`}
+              />
             ) : (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
                 <Database className="w-12 h-12 text-gray-300 mx-auto mb-2" />
