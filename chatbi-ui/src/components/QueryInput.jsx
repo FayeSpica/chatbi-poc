@@ -75,6 +75,16 @@ function QueryInput({ onSendMessage, isLoading, settings, onSettingsChange, onCl
               />
               <span className="text-sm text-gray-700">使用语义模式</span>
             </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.autoExecute}
+                onChange={(e) => handleSettingChange('autoExecute', e.target.checked)}
+                className="rounded"
+              />
+              <span className="text-sm text-gray-700">自动执行 SQL</span>
+            </label>
           </div>
         </div>
       )}

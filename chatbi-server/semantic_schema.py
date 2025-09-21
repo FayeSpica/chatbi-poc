@@ -386,8 +386,81 @@ def create_sample_shop_schema() -> DatabaseSemantic:
     )
 
 
+def create_ip_flow_schema() -> DatabaseSemantic:
+    """创建IP流量数据库的语义模式"""
+    return DatabaseSemantic(
+        name="network",
+        description="网络流量监控数据库",
+        business_domain="网络监控",
+        tables=[
+            TableSemantic(
+                name="ip_flow",
+                business_meaning="IP流量统计表",
+                description="存储网络接口的IP流量统计信息，用于网络性能监控和分析",
+                primary_key="timestamp,ip,intf",
+                common_queries=[
+                    "查询指定IP的流量统计",
+                    "分析网络接口流量趋势",
+                    "统计时间段内的带宽使用情况",
+                    "查找高流量IP地址",
+                    "监控接口流量峰值"
+                ],
+                business_rules=[
+                    "IP地址必须为有效格式",
+                    "带宽速率不能为负数",
+                    "时间戳必须为有效时间格式",
+                    "接口名称不能为空"
+                ],
+                fields=[
+                    FieldSemantic(
+                        name="ip",
+                        data_type=DataType.STRING,
+                        business_meaning="IP地址，标识网络中的主机或设备",
+                        examples=["192.168.1.100", "10.0.0.1", "172.16.1.50"],
+                        constraints=["非空", "IP地址格式"],
+                        filter_support=True,
+                        sort_support=True,
+                        aggregation_support=False
+                    ),
+                    FieldSemantic(
+                        name="intf",
+                        data_type=DataType.STRING,
+                        business_meaning="网络接口名称，标识数据流经的网络接口",
+                        examples=["eth0", "eth1", "wlan0", "lo", "ens33"],
+                        constraints=["非空"],
+                        filter_support=True,
+                        sort_support=True,
+                        aggregation_support=False
+                    ),
+                    FieldSemantic(
+                        name="bps",
+                        data_type=DataType.FLOAT,
+                        business_meaning="带宽速率，单位为每秒字节数(Bytes per second)",
+                        examples=["1024.5", "2048000.0", "512.25"],
+                        constraints=["非空", "大于等于0"],
+                        aggregation_support=True,
+                        filter_support=True,
+                        sort_support=True
+                    ),
+                    FieldSemantic(
+                        name="timestamp",
+                        data_type=DataType.DATETIME,
+                        business_meaning="数据采集时间戳，记录流量统计的具体时间",
+                        examples=["2024-01-15 14:30:00", "2024-01-15 14:31:00"],
+                        constraints=["非空"],
+                        aggregation_support=True,
+                        filter_support=True,
+                        sort_support=True
+                    )
+                ]
+            )
+        ]
+    )
+
+
 # 全局语义模式管理器实例
 semantic_manager = SemanticSchemaManager()
 
 # 初始化示例模式
 semantic_manager.add_schema(create_sample_shop_schema())
+semantic_manager.add_schema(create_ip_flow_schema())

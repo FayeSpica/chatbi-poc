@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Send, Copy, Check, Loader2, Database, Code, AlertCircle } from 'lucide-react'
-import { processQuery } from '../utils/api'
+import { processQuery, executeSQL } from '../utils/api'
 import MessageBubble from './MessageBubble'
 import QueryInput from './QueryInput'
 import ResponseDisplay from './ResponseDisplay'
@@ -8,10 +8,12 @@ import ResponseDisplay from './ResponseDisplay'
 function ChatInterface() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingStatus, setLoadingStatus] = useState('')
   const [settings, setSettings] = useState({
     useSemantic: true,
     dbName: 'shop',
-    model: 'qwen2.5:7b'
+    model: 'qwen2.5:7b',
+    autoExecute: true
   })
   const messagesEndRef = useRef(null)
 
@@ -35,6 +37,7 @@ function ChatInterface() {
 
     setMessages(prev => [...prev, userMessage])
     setIsLoading(true)
+    setLoadingStatus('正在解析自然语言查询...')
 
     try {
       const response = await processQuery({
@@ -44,10 +47,36 @@ function ChatInterface() {
         model: settings.model
       })
 
+      let finalResponse = response
+
+      // 如果查询成功且启用了自动执行，则自动执行 SQL
+      if (response.success && settings.autoExecute && response.mysql_sql) {
+        setLoadingStatus('正在自动执行 SQL 查询...')
+        try {
+          const executeResult = await executeSQL({
+            sql: response.mysql_sql,
+            db_name: settings.dbName
+          })
+          
+          // 将执行结果合并到响应中
+          finalResponse = {
+            ...response,
+            executeResult: executeResult
+          }
+        } catch (executeError) {
+          console.error('自动执行SQL失败:', executeError)
+          // 将执行错误信息添加到响应中
+          finalResponse = {
+            ...response,
+            executeError: executeError.message || '自动执行SQL失败'
+          }
+        }
+      }
+
       const assistantMessage = {
         id: Date.now() + 1,
         type: 'assistant',
-        content: response,
+        content: finalResponse,
         timestamp: new Date()
       }
 
@@ -66,6 +95,7 @@ function ChatInterface() {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setLoadingStatus('')
     }
   }
 
@@ -109,7 +139,9 @@ function ChatInterface() {
             <div className="message-assistant">
               <div className="flex items-center space-x-2">
                 <Loader2 className="w-4 h-4 animate-spin text-primary-600" />
-                <span className="text-gray-600">正在处理您的查询...</span>
+                <span className="text-gray-600">
+                  {loadingStatus || '正在处理您的查询...'}
+                </span>
               </div>
             </div>
           </div>
